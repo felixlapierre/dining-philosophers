@@ -12,13 +12,31 @@ public class Monitor {
 	 * Data members
 	 * ------------
      */
+    //To handle sync of talking: a boolean indicating if a philosopher is talking
     boolean aPhilosopherIsTalking = false;
+    
+    //To handle the food cycle of a philosopher
+    enum Status {full, hungry, eating};
+    
+    //To hold the status of all the philosophers
+    Status[] state;
+    
+    //To hold the conditionals of all the philosophers
+    
+    //To hold the number of philosophers at the table
+    int nbPhil;
 
     /**
      * Constructor
      */
     public Monitor(int piNumberOfPhilosophers) {
         // TODO: set appropriate number of chopsticks based on the # of philosophers
+        nbPhil = piNumberOfPhilosophers;
+        state = new Status[nbPhil];
+        for(int i = 0; i < nbPhil; i++)
+        {
+            state[i] = Status.full;
+        }
     }
 
     /*
@@ -26,12 +44,38 @@ public class Monitor {
 	 * User-defined monitor procedures
 	 * -------------------------------
      */
+    
+    /**
+     * Checks if the philosopher with the given id can
+     * pick up the chopsticks and eat
+     */
+    private void check(int id)
+    {
+        if(state[(id-1)%nbPhil] != Status.eating
+            && state[(id+1)%nbPhil] != Status.eating
+            && state[(id)] == Status.hungry)
+        {
+            state[id] = Status.eating;
+        }
+    }
     /**
      * Grants request (returns) to eat when both chopsticks/forks are available.
      * Else forces the philosopher to wait()
      */
     public synchronized void pickUp(final int piTID) {
-        // ...
+        //Task2: Implementation of pickUp()
+        try{
+            state[piTID] = Status.hungry;
+            check(piTID);
+            if(state[piTID] == Status.hungry)
+                wait();
+        } catch (InterruptedException e)
+        {
+            System.err.println("Monitor.pickUp():");
+            DiningPhilosophers.reportException(e);
+            System.exit(1);
+        }
+        
     }
 
     /**
@@ -39,7 +83,7 @@ public class Monitor {
      * and let others know they are available.
      */
     public synchronized void putDown(final int piTID) {
-        // ...
+        state[piTID] = Status.full;
     }
 
     /**
