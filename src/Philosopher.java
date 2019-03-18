@@ -107,6 +107,8 @@ public class Philosopher extends BaseThread {
                     "You know, true is false and false is true if you think of it",
                     "2 + 2 = 5 for extremely large values of 2...",
                     "If thee cannot speak, thee must be silent",
+                    "Every moment you spend above the ground is spending too much energy",
+                    "I legs t have not been this for drink suifnence Frosh ma",
                     "My number is " + getTID() + ""
                 };
 
