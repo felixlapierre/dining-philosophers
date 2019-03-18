@@ -73,11 +73,11 @@ public class Philosopher extends BaseThread {
     public void run() {
         //Task 1: Implementation of run()
         for (int i = 0; i < DiningPhilosophers.DINING_STEPS; i++) {
-            DiningPhilosophers.soMonitor.pickUp(getTID());
+            DiningPhilosophers.soMonitor.pickUp(getTID() - 1);
 
             eat();
 
-            DiningPhilosophers.soMonitor.putDown(getTID());
+            DiningPhilosophers.soMonitor.putDown(getTID() - 1);
 
             think();
 

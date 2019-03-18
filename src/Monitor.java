@@ -51,8 +51,12 @@ public class Monitor {
      */
     private void check(int id)
     {
-        if(state[(id-1)%nbPhil] != Status.eating
-            && state[(id+1)%nbPhil] != Status.eating
+        int left = (id > 0) ? id - 1 : nbPhil - 1;
+        
+        int right = (id < nbPhil - 1) ? id + 1 : 0;
+        
+        if(state[left] != Status.eating
+            && state[right] != Status.eating
             && state[(id)] == Status.hungry)
         {
             state[id] = Status.eating;
