@@ -88,7 +88,11 @@ public class Monitor {
             state[piTID] = Status.hungry;
             check(piTID);
             if(state[piTID] == Status.hungry)
+            {
+                System.out.println("Philosopher " + (piTID+1) + " is waiting to eat.");
+
                 chopsticks[piTID].await();
+            }
         }
         catch (InterruptedException e)
         {
@@ -108,13 +112,15 @@ public class Monitor {
      */
     public void putDown(final int piTID) {
         lock.lock();
+
         state[piTID] = Status.full;
         check(left(piTID));
         if(state[left(piTID)] == Status.eating)
-            chopsticks[left(piTID)].notify();
+            chopsticks[left(piTID)].signal();
         check(right(piTID));
         if(state[right(piTID)] == Status.eating)
-            chopsticks[right(piTID)].notify();
+            chopsticks[right(piTID)].signal();
+
         lock.unlock();
     }
 
@@ -155,8 +161,10 @@ public class Monitor {
         //A philosopher is no longer talking. Notify one waiting philosopher
         //that they can start talking.
         lock.lock();
+
         aPhilosopherIsTalking = false;
-        talking.notify();
+        talking.signal();
+
         lock.unlock();
     }
 }
