@@ -124,6 +124,7 @@ public class Monitor {
                 System.out.println("Philosopher " + (piTID + 1) + " has taken the right chopstick");
                 chopsticks[piTID].await();
             }
+            assert(state[piTID] == Status.eating);
         }
         catch (InterruptedException e)
         {
