@@ -125,6 +125,9 @@ public class Monitor {
                 chopsticks[piTID].await();
             }
             assert(state[piTID] == Status.eating);
+            assert(state[left(piTID)] != Status.eating
+                    && state[left(piTID)] != Status.hasRightChopstick);
+            assert(state[right(piTID)] != Status.eating);
         }
         catch (InterruptedException e)
         {

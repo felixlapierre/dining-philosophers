@@ -39,12 +39,6 @@ public class DiningPhilosophers {
      */
     public static void main(String[] argv) {
         try {
-            /*
-             * TODO:
-             * Should be settable from the command line
-             * or the default if no arguments supplied.
-             */
-
             int iPhilosophers = getNumberOfPhilosophersFromCommandLine(argv);
 
             // Make the monitor aware of how many philosophers there are
