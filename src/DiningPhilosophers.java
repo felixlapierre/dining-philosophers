@@ -44,7 +44,8 @@ public class DiningPhilosophers {
              * Should be settable from the command line
              * or the default if no arguments supplied.
              */
-            int iPhilosophers = DEFAULT_NUMBER_OF_PHILOSOPHERS;
+
+            int iPhilosophers = getNumberOfPhilosophersFromCommandLine(argv);
 
             // Make the monitor aware of how many philosophers there are
             soMonitor = new Monitor(iPhilosophers);
@@ -76,6 +77,18 @@ public class DiningPhilosophers {
             System.exit(1);
         }
     } // main()
+    
+    private static int getNumberOfPhilosophersFromCommandLine(String[] argv)
+    {
+        try
+        {
+            return Integer.parseInt(argv[0]);
+        } catch (Exception e)
+        {
+            return DEFAULT_NUMBER_OF_PHILOSOPHERS;
+        }
+        
+    }
 
     /**
      * Outputs exception information to STDERR
