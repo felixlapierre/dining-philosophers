@@ -78,6 +78,8 @@ public class DiningPhilosophers {
         }
     } // main()
     
+    //Task 4
+    //TODO: Print an informative error message when unable to parse to int
     private static int getNumberOfPhilosophersFromCommandLine(String[] argv)
     {
         try
