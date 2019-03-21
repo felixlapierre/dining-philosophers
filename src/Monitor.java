@@ -21,7 +21,7 @@ public class Monitor {
     private boolean aPhilosopherIsTalking = false;
     
     //To handle the food cycle of a philosopher
-    private enum Status {full, hungry, eating};
+    private enum Status {full, hungry, hasRightChopstick, eating};
     
     //To hold the status of all the philosophers
     private Status[] state;
@@ -70,12 +70,39 @@ public class Monitor {
      */
     private void check(int id)
     {
-        if(state[left(id)] != Status.eating
-            && state[right(id)] != Status.eating
-            && state[id] == Status.hungry)
+        if(bothChopsticksFree(id)
+            && iWantToEat(id))
         {
             state[id] = Status.eating;
         }
+        else if(allowedToTakeOneChopstick(id)
+                && rightChopstickFree(id)
+                && iWantToEat(id))
+        {
+            state[id] = Status.hasRightChopstick;
+        }
+    }
+    
+    private boolean bothChopsticksFree(int id)
+    {
+        return state[left(id)] != Status.eating
+            && state[left(id)] != Status.hasRightChopstick
+            && state[right(id)] != Status.eating;
+    }
+    
+    private boolean iWantToEat(int id)
+    {
+        return state[id] == Status.hungry || state[id] == Status.hasRightChopstick;
+    }
+    
+    private boolean allowedToTakeOneChopstick(int id)
+    {
+        return id % 2 == 0;
+    }
+    
+    private boolean rightChopstickFree(int id)
+    {
+        return state[right(id)] != Status.eating;
     }
     /**
      * Grants request (returns) to eat when both chopsticks/forks are available.
@@ -90,7 +117,11 @@ public class Monitor {
             if(state[piTID] == Status.hungry)
             {
                 System.out.println("Philosopher " + (piTID+1) + " is waiting to eat.");
-
+                chopsticks[piTID].await();
+            }
+            else if (state[piTID] == Status.hasRightChopstick)
+            {
+                System.out.println("Philosopher " + (piTID + 1) + " has taken the right chopstick");
                 chopsticks[piTID].await();
             }
         }
@@ -114,9 +145,11 @@ public class Monitor {
         lock.lock();
 
         state[piTID] = Status.full;
+        
         check(left(piTID));
         if(state[left(piTID)] == Status.eating)
             chopsticks[left(piTID)].signal();
+        
         check(right(piTID));
         if(state[right(piTID)] == Status.eating)
             chopsticks[right(piTID)].signal();
