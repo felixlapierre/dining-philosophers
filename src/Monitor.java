@@ -248,7 +248,10 @@ public class Monitor {
         lock.lock();
         //This philosopher will sit at the last seat
         state.add(Status.full);
-        assignedSeats.put(threadId, nbPhil);
+        
+        //For some reason the threadID here is one larger than it's supposed to be
+        //so map threadID - 1 in order to avoid a crash
+        assignedSeats.put(threadId - 1, nbPhil);
         chopsticks.add(lock.newCondition());
         
         //There is now one more philosopher
@@ -256,6 +259,14 @@ public class Monitor {
         
         //Let everyone know
         System.out.println("Philosopher " + threadId + " has joined the table.");
+        lock.unlock();
+    }
+    
+    public void leaveTable(int threadID)
+    {
+        lock.lock();
+        
+        
         lock.unlock();
     }
 }
