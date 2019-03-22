@@ -17,6 +17,7 @@ public class Monitor {
 	 * Data members
 	 * ------------
      */
+    //Task 2: Implementation of monitor
     //To handle sync of talking: a boolean indicating if a philosopher is talking
     private boolean aPhilosopherIsTalking = false;
     
@@ -38,7 +39,7 @@ public class Monitor {
      * Constructor
      */
     public Monitor(int piNumberOfPhilosophers) {
-        // TODO: set appropriate number of chopsticks based on the # of philosophers
+        //Task 2: Set number of philosophers and initialize data
         nbPhil = piNumberOfPhilosophers;
         state = new Status[nbPhil];
         chopsticks = new Condition[nbPhil];
@@ -55,6 +56,7 @@ public class Monitor {
 	 * User-defined monitor procedures
 	 * -------------------------------
      */
+    //Task 2: Procedures for getting the left and right philosopher
     private int left(int id)
     {
         return (id > 0) ? id - 1 : nbPhil - 1;
@@ -65,6 +67,7 @@ public class Monitor {
         return (id < nbPhil - 1) ? id + 1 : 0;
     }
     /**
+     * Task 2:
      * Checks if the philosopher with the given id can
      * pick up the chopsticks and eat
      */
@@ -83,6 +86,7 @@ public class Monitor {
         }
     }
     
+    //Task 2: Split check into smaller methods
     private boolean bothChopsticksFree(int id)
     {
         return state[left(id)] != Status.eating
@@ -104,7 +108,9 @@ public class Monitor {
     {
         return state[right(id)] != Status.eating;
     }
+    
     /**
+     * Task 2:
      * Grants request (returns) to eat when both chopsticks/forks are available.
      * Else forces the philosopher to wait()
      */
@@ -142,6 +148,7 @@ public class Monitor {
     }
 
     /**
+     * Task 2:
      * When a given philosopher's done eating, they put the chopstiks/forks down
      * and let others know they are available.
      */
@@ -162,11 +169,11 @@ public class Monitor {
     }
 
     /**
+     * Task 2:
      * Only one philosopher at a time is allowed to philosophy (while she is not
      * eating).
      */
     public void requestTalk() {
-        //Task 2: Implementation of requestTalk()
         //If a philosopher is talking, wait for them to finish, then talk.
         lock.lock();
         try
@@ -190,11 +197,11 @@ public class Monitor {
     }
 
     /**
+     * Task 2:
      * When one philosopher is done talking stuff, others can feel free to start
      * talking.
      */
     public void endTalk() {
-        //Task 2: Implementation of endTalk()
         //A philosopher is no longer talking. Notify one waiting philosopher
         //that they can start talking.
         lock.lock();
