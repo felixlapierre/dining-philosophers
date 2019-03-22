@@ -78,6 +78,14 @@ public class Philosopher extends BaseThread {
             eat();
 
             DiningPhilosophers.soMonitor.putDown(getTID() - 1);
+            
+            //Task 5: Decide at random if the philosopher will invite a friend to join the table
+            if(Math.random() > 0.95)
+            {
+                Philosopher friend = new Philosopher();
+                DiningPhilosophers.soMonitor.joinTable(friend.getTID());
+                friend.start();
+            }
 
             think();
 
