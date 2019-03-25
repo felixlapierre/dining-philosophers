@@ -12,6 +12,9 @@ public class Philosopher extends BaseThread {
      * Max time an action can take (in milliseconds)
      */
     public static final long TIME_TO_WASTE = 1000;
+    
+    //Task 5: Allow philosophers to invite a friend
+    Philosopher friend;
 
     /**
      * The act of eating. - Print the fact that a given phil (their TID) has
@@ -80,9 +83,9 @@ public class Philosopher extends BaseThread {
             DiningPhilosophers.soMonitor.putDown(getTID());
             
             //Task 5: Decide at random if the philosopher will invite a friend to join the table
-            if(Math.random() > 0.95)
+            if(Math.random() > 0.95 && friend == null)
             {
-                Philosopher friend = new Philosopher();
+                friend = new Philosopher();
                 DiningPhilosophers.soMonitor.joinTable(friend.getTID());
                 friend.start();
                 System.out.println("New philosopher: id " + friend.getTID());
@@ -92,7 +95,7 @@ public class Philosopher extends BaseThread {
             if(Math.random() > 0.95)
             {
                 DiningPhilosophers.soMonitor.leaveTable(getTID());
-                return;
+                break;
             }
 
             think();
@@ -109,6 +112,23 @@ public class Philosopher extends BaseThread {
             }
 
             yield();
+        }
+        
+        if(friend != null)
+        {
+            //Wait for your friend to finish before terminating
+            //so that main will not terminate until all philosphers
+            //are done
+            try
+            {
+                friend.join();
+            }
+            catch(InterruptedException e)
+            {
+                System.err.println("Philosopher.run():");
+                DiningPhilosophers.reportException(e);
+                System.exit(1);
+            }
         }
     } // run()
 
