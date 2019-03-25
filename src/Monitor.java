@@ -38,6 +38,11 @@ public class Monitor {
     
     //Task 5: Map philosopher TIDs to seats at the table
     private HashMap<Integer, Integer> assignedSeats;
+    
+    //Task 6: Pepper shakers
+    int peppers = 0;
+    final int MAX_PEPPERS = 2;
+    private Condition pepper;
 
     /**
      * Constructor
@@ -62,6 +67,9 @@ public class Monitor {
         {
             assignedSeats.put(i + 1, i);
         }
+        
+        //Task 6: Pepper shakers
+        pepper = lock.newCondition();
     }
 
     /*
@@ -147,6 +155,16 @@ public class Monitor {
                 System.out.println("Philosopher " + (piTID) + " has taken the right chopstick");
                 chopsticks.get(id).await();
             }
+            
+            //Task 6: Grab a pepper shaker
+            peppers++;
+            if(peppers > MAX_PEPPERS)
+            {
+                System.out.println("Philosopher " + piTID + " is waiting for a pepper shaker");
+                pepper.await();
+            }
+            System.out.println("Philosopher " + piTID + " has taken a pepper shaker");
+            
             assert(state.get(id) == Status.eating);
             assert(state.get(left(id)) != Status.eating
                     && state.get(left(id)) != Status.hasRightChopstick);
@@ -175,6 +193,11 @@ public class Monitor {
         int id = getSeat(piTID);
 
         state.set(id, Status.full);
+        
+        //Task 6: Put down a pepper shaker
+        peppers--;
+        System.out.println("Philosopher " + piTID + " puts down a pepper shaker");
+        pepper.signal();
         
         check(left(id));
         if(state.get(left(id)) == Status.eating)
@@ -293,7 +316,7 @@ public class Monitor {
             }
             
             //Print that someone has left
-            System.out.println("Philosopher " + (threadID) + "has left the table.");
+            System.out.println("Philosopher " + (threadID) + " has left the table.");
         }
         catch(InterruptedException e)
         {
