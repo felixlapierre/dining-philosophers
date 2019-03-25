@@ -73,19 +73,26 @@ public class Philosopher extends BaseThread {
     public void run() {
         //Task 1: Implementation of run()
         for (int i = 0; i < DiningPhilosophers.DINING_STEPS; i++) {
-            DiningPhilosophers.soMonitor.pickUp(getTID() - 1);
+            DiningPhilosophers.soMonitor.pickUp(getTID());
 
             eat();
 
-            DiningPhilosophers.soMonitor.putDown(getTID() - 1);
+            DiningPhilosophers.soMonitor.putDown(getTID());
             
             //Task 5: Decide at random if the philosopher will invite a friend to join the table
-            if(Math.random() > 0.90)
+            if(Math.random() > 0.95)
             {
                 Philosopher friend = new Philosopher();
                 DiningPhilosophers.soMonitor.joinTable(friend.getTID());
                 friend.start();
                 System.out.println("New philosopher: id " + friend.getTID());
+            }
+            
+            //Task 5: Decide at random if the philosopher will leave the table
+            if(Math.random() > 0.95)
+            {
+                DiningPhilosophers.soMonitor.leaveTable(getTID());
+                return;
             }
 
             think();

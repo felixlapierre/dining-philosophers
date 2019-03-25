@@ -60,7 +60,7 @@ public class Monitor {
         //to their TID
         for(int i = 0; i < nbPhil; i++)
         {
-            assignedSeats.put(i, i);
+            assignedSeats.put(i + 1, i);
         }
     }
 
@@ -139,12 +139,12 @@ public class Monitor {
             check(id);
             if(state.get(id) == Status.hungry)
             {
-                System.out.println("Philosopher " + (piTID+1) + " is waiting to eat.");
+                System.out.println("Philosopher " + (piTID) + " is waiting to eat.");
                 chopsticks.get(id).await();
             }
             else if (state.get(id) == Status.hasRightChopstick)
             {
-                System.out.println("Philosopher " + (piTID + 1) + " has taken the right chopstick");
+                System.out.println("Philosopher " + (piTID) + " has taken the right chopstick");
                 chopsticks.get(id).await();
             }
             assert(state.get(id) == Status.eating);
@@ -249,9 +249,7 @@ public class Monitor {
         //This philosopher will sit at the last seat
         state.add(Status.full);
         
-        //For some reason the threadID here is one larger than it's supposed to be
-        //so map threadID - 1 in order to avoid a crash
-        assignedSeats.put(threadId - 1, nbPhil);
+        assignedSeats.put(threadId, nbPhil);
         chopsticks.add(lock.newCondition());
         
         //There is now one more philosopher
@@ -262,10 +260,47 @@ public class Monitor {
         lock.unlock();
     }
     
+    /**
+     * Task 5:
+     * Allow a philosopher to leave the table
+     * @param threadID The thread ID of the philosopher that wants to leave
+     */
     public void leaveTable(int threadID)
     {
         lock.lock();
-        
+        try
+        {
+            int id = getSeat(threadID);
+
+            //Wait for my neighbors to finish eating
+            state.set(id, Status.hungry);
+            check(id);
+            if(state.get(id) == Status.hungry)
+                chopsticks.get(id).await();
+            
+            //Leave the table
+            state.remove(id);
+            chopsticks.remove(id);
+            nbPhil--;
+            
+            //Adjust map for accuracy
+            assignedSeats.remove(threadID);
+            for(int key : assignedSeats.keySet())
+            {
+                int seat = assignedSeats.get(key);
+                if(seat > id)
+                    assignedSeats.put(key, seat - 1);
+            }
+            
+            //Print that someone has left
+            System.out.println("Philosopher " + (threadID) + "has left the table.");
+        }
+        catch(InterruptedException e)
+        {
+            System.err.println("Monitor.leaveTable(): ");
+            DiningPhilosophers.reportException(e);
+            System.exit(1);
+        }
         
         lock.unlock();
     }
