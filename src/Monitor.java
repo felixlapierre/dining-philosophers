@@ -23,7 +23,7 @@ public class Monitor {
     private boolean aPhilosopherIsTalking = false;
     
     //To handle the food cycle of a philosopher
-    private enum Status {full, hungry, hasOneChopstick, eating};
+    private enum Status {full, hungry, hasRightChopstick, hasLeftChopstick, eating};
     
     //To hold the status of all the philosophers
     private Status[] state;
@@ -65,6 +65,10 @@ public class Monitor {
             priority[a] = priority[b];
             priority[b] = temp;
         }
+        for(int i = 0; i < nbPhil; i++)
+        {
+            System.out.println("Philosopher " + (i+1) + " has priority " + priority[i]);
+        }
     }
 
     /*
@@ -94,11 +98,19 @@ public class Monitor {
         {
             state[id] = Status.eating;
         }
-        else if(allowedToTakeOneChopstick(id)
-                && rightChopstickFree(id)
+        else if(rightChopstickFree(id)
+                && haveHigherPriority(id, right(id))
                 && iWantToEat(id))
         {
-            state[id] = Status.hasOneChopstick;
+            System.out.println("Philosopher " + (id + 1) + " has taken the right chopstick");
+            state[id] = Status.hasRightChopstick;
+        } 
+        else if (leftChopstickFree(id)
+                && haveHigherPriority(id, left(id))
+                && iWantToEat(id))
+        {
+            System.out.println("Philosopher " + (id + 1) + " has taken the left chopstick");
+            state[id] = Status.hasLeftChopstick;
         }
     }
     
@@ -106,13 +118,14 @@ public class Monitor {
     private boolean bothChopsticksFree(int id)
     {
         return state[left(id)] != Status.eating
-            && state[left(id)] != Status.hasOneChopstick
-            && state[right(id)] != Status.eating;
+            && state[left(id)] != Status.hasRightChopstick
+            && state[right(id)] != Status.eating
+            && state[right(id)] != Status.hasLeftChopstick;
     }
     
     private boolean iWantToEat(int id)
     {
-        return state[id] == Status.hungry || state[id] == Status.hasOneChopstick;
+        return state[id] == Status.hungry || state[id] == Status.hasRightChopstick;
     }
     
     private boolean allowedToTakeOneChopstick(int id)
@@ -123,6 +136,16 @@ public class Monitor {
     private boolean rightChopstickFree(int id)
     {
         return state[right(id)] != Status.eating;
+    }
+    
+    private boolean leftChopstickFree(int id)
+    {
+        return state[left(id)] != Status.eating;
+    }
+    
+    private boolean haveHigherPriority(int myId, int theirId)
+    {
+        return priority[myId] > priority[theirId];
     }
     
     /**
@@ -141,14 +164,13 @@ public class Monitor {
                 System.out.println("Philosopher " + (piTID+1) + " is waiting to eat.");
                 chopsticks[piTID].await();
             }
-            else if (state[piTID] == Status.hasOneChopstick)
+            else if (state[piTID] == Status.hasRightChopstick)
             {
-                System.out.println("Philosopher " + (piTID + 1) + " has taken the right chopstick");
                 chopsticks[piTID].await();
             }
             assert(state[piTID] == Status.eating);
             assert(state[left(piTID)] != Status.eating
-                    && state[left(piTID)] != Status.hasOneChopstick);
+                    && state[left(piTID)] != Status.hasRightChopstick);
             assert(state[right(piTID)] != Status.eating);
         }
         catch (InterruptedException e)
