@@ -2,6 +2,7 @@
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.Arrays;
 
 
 /**
@@ -22,7 +23,7 @@ public class Monitor {
     private boolean aPhilosopherIsTalking = false;
     
     //To handle the food cycle of a philosopher
-    private enum Status {full, hungry, hasRightChopstick, eating};
+    private enum Status {full, hungry, hasOneChopstick, eating};
     
     //To hold the status of all the philosophers
     private Status[] state;
@@ -34,6 +35,9 @@ public class Monitor {
     
     //To hold the number of philosophers at the table
     int nbPhil;
+    
+    //Task 3: Alternative solution assigning priority to each philosopher
+    int priority[];
 
     /**
      * Constructor
@@ -44,10 +48,22 @@ public class Monitor {
         state = new Status[nbPhil];
         chopsticks = new Condition[nbPhil];
         talking = lock.newCondition();
+        priority = new int[nbPhil];
         for(int i = 0; i < nbPhil; i++)
         {
             state[i] = Status.full;
             chopsticks[i] = lock.newCondition();
+            priority[i] = i;
+        }
+        
+        //Task 3: Randomize the priority of each philosopher
+        for(int i = 0; i < 100; i++)
+        {
+            int a = (int)(Math.random()*nbPhil);
+            int b = (int)(Math.random()*nbPhil);
+            int temp = priority[a];
+            priority[a] = priority[b];
+            priority[b] = temp;
         }
     }
 
@@ -82,7 +98,7 @@ public class Monitor {
                 && rightChopstickFree(id)
                 && iWantToEat(id))
         {
-            state[id] = Status.hasRightChopstick;
+            state[id] = Status.hasOneChopstick;
         }
     }
     
@@ -90,13 +106,13 @@ public class Monitor {
     private boolean bothChopsticksFree(int id)
     {
         return state[left(id)] != Status.eating
-            && state[left(id)] != Status.hasRightChopstick
+            && state[left(id)] != Status.hasOneChopstick
             && state[right(id)] != Status.eating;
     }
     
     private boolean iWantToEat(int id)
     {
-        return state[id] == Status.hungry || state[id] == Status.hasRightChopstick;
+        return state[id] == Status.hungry || state[id] == Status.hasOneChopstick;
     }
     
     private boolean allowedToTakeOneChopstick(int id)
@@ -125,14 +141,14 @@ public class Monitor {
                 System.out.println("Philosopher " + (piTID+1) + " is waiting to eat.");
                 chopsticks[piTID].await();
             }
-            else if (state[piTID] == Status.hasRightChopstick)
+            else if (state[piTID] == Status.hasOneChopstick)
             {
                 System.out.println("Philosopher " + (piTID + 1) + " has taken the right chopstick");
                 chopsticks[piTID].await();
             }
             assert(state[piTID] == Status.eating);
             assert(state[left(piTID)] != Status.eating
-                    && state[left(piTID)] != Status.hasRightChopstick);
+                    && state[left(piTID)] != Status.hasOneChopstick);
             assert(state[right(piTID)] != Status.eating);
         }
         catch (InterruptedException e)
