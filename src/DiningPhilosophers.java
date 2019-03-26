@@ -76,14 +76,22 @@ public class DiningPhilosophers {
     //TODO: Print an informative error message when unable to parse to int
     private static int getNumberOfPhilosophersFromCommandLine(String[] argv)
     {
-        try
+        int result = DEFAULT_NUMBER_OF_PHILOSOPHERS;
+        if(argv.length > 0)
         {
-            return Integer.parseInt(argv[0]);
-        } catch (Exception e)
-        {
-            return DEFAULT_NUMBER_OF_PHILOSOPHERS;
+            try
+            {
+                result = Integer.parseInt(argv[0]);
+                if(result < 1)
+                    throw new NumberFormatException();
+            }
+            catch (NumberFormatException e)
+            {
+                System.out.println("\"" + argv[0] + "\" is not a positive decimal integer.\n\nUsage: java DiningPhilosophers [NUMBER_OF_PHILOSOPHERS]");
+                System.exit(1);
+            }
         }
-        
+        return result;
     }
 
     /**
