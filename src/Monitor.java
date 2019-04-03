@@ -3,6 +3,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Arrays;
+import java.util.Random;
 
 
 /**
@@ -53,14 +54,16 @@ public class Monitor {
         {
             state[i] = Status.full;
             chopsticks[i] = lock.newCondition();
+            //Task 3: Assign the philosophers a priority equal to their index
             priority[i] = i;
         }
         
         //Task 3: Randomize the priority of each philosopher
+        Random random = new Random(64); //Seeded for testing
         for(int i = 0; i < 100; i++)
         {
-            int a = (int)(Math.random()*nbPhil);
-            int b = (int)(Math.random()*nbPhil);
+            int a = (int)(random.nextDouble()*nbPhil);
+            int b = (int)(random.nextDouble()*nbPhil);
             int temp = priority[a];
             priority[a] = priority[b];
             priority[b] = temp;
@@ -125,7 +128,7 @@ public class Monitor {
     
     private boolean iWantToEat(int id)
     {
-        return state[id] == Status.hungry || state[id] == Status.hasRightChopstick;
+        return state[id] == Status.hungry || state[id] == Status.hasRightChopstick || state[id] == Status.hasLeftChopstick;
     }
     
     private boolean allowedToTakeOneChopstick(int id)
@@ -164,7 +167,8 @@ public class Monitor {
                 System.out.println("Philosopher " + (piTID+1) + " is waiting to eat.");
                 chopsticks[piTID].await();
             }
-            else if (state[piTID] == Status.hasRightChopstick)
+            else if (state[piTID] == Status.hasRightChopstick
+                    || state[piTID] == Status.hasLeftChopstick)
             {
                 chopsticks[piTID].await();
             }
