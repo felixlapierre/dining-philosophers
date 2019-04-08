@@ -2,7 +2,7 @@
 import common.BaseThread;
 
 /**
- * Class Philosopher. Outlines main subrutines of our virtual philosopher.
+ * Class Philosopher. Outlines main subroutines of our virtual philosopher.
  *
  * @author Serguei A. Mokhov, mokhov@cs.concordia.ca
  */
@@ -12,6 +12,10 @@ public class Philosopher extends BaseThread {
      * Max time an action can take (in milliseconds)
      */
     public static final long TIME_TO_WASTE = 1000;
+    public static final double ODDS_OF_INVITING_FRIEND = 0.05;
+    public static final double ODDS_OF_LEAVING_TABLE = 0.05;
+    //For now, a philosopher will always talk, to maximize the odds of a wait condition.
+    public static final double ODDS_OF_TALKING = 1;
     
     //Task 5: Allow philosophers to invite a friend
     Philosopher friend;
@@ -55,6 +59,21 @@ public class Philosopher extends BaseThread {
             System.exit(1);
         }
     }
+    
+    public void nap() {
+        //Task 1: Implementation of nap()
+        try {
+            System.out.println("Philosopher " + getTID() + " has started napping.");
+            yield();
+            sleep((long) (Math.random() * TIME_TO_WASTE));
+            yield();
+            System.out.println("Philosopher " + getTID() + " is done napping.");
+        } catch (InterruptedException e) {
+            System.err.println("Philosopher.nap():");
+            DiningPhilosophers.reportException(e);
+            System.exit(1);
+        }
+    }
 
     /**
      * The act of talking. - Print the fact that a given phil (their TID) has
@@ -83,7 +102,7 @@ public class Philosopher extends BaseThread {
             DiningPhilosophers.soMonitor.putDown(getTID());
             
             //Task 5: Decide at random if the philosopher will invite a friend to join the table
-            if(Math.random() > 0.95 && friend == null)
+            if(Math.random() < ODDS_OF_INVITING_FRIEND && friend == null)
             {
                 friend = new Philosopher();
                 DiningPhilosophers.soMonitor.joinTable(friend.getTID());
@@ -92,7 +111,7 @@ public class Philosopher extends BaseThread {
             }
             
             //Task 5: Decide at random if the philosopher will leave the table
-            if(Math.random() > 0.95)
+            if(Math.random() < ODDS_OF_LEAVING_TABLE)
             {
                 DiningPhilosophers.soMonitor.leaveTable(getTID());
                 break;
@@ -102,14 +121,18 @@ public class Philosopher extends BaseThread {
 
             //Decide at random if the philosopher has something to say
             //after all that thinking
-            //For now, a philosopher will always talk, to maximize the odds of a wait condition.
-            if (Math.random() > 0) {
+            if (Math.random() < ODDS_OF_TALKING) {
                 //Use the monitor to request permission to talk
                 DiningPhilosophers.soMonitor.requestTalk();
                 talk();
                 //Use the monitor to signal that talking is over for now
                 DiningPhilosophers.soMonitor.endTalk();
             }
+            
+            //All that talking and thinking is exhausting. Let's take a nap.
+            DiningPhilosophers.soMonitor.requestNap();
+            nap();
+            DiningPhilosophers.soMonitor.endNap();
 
             yield();
         }
