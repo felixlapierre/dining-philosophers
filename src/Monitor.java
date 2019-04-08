@@ -20,7 +20,10 @@ public class Monitor {
      */
     //Task 2: Implementation of monitor
     //To handle sync of talking: a boolean indicating if a philosopher is talking
+    //and an int specifying how many philosophers are sleeping
     private boolean aPhilosopherIsTalking = false;
+    private int philosophersNapping = 0;
+    int philosophersWaitingToTalk = 0;
     
     //To handle the food cycle of a philosopher
     private enum Status {full, hungry, hasRightChopstick, eating};
@@ -32,6 +35,7 @@ public class Monitor {
     private Lock lock = new ReentrantLock();
     private ArrayList<Condition> chopsticks;
     private Condition talking;
+    private Condition napping;
     
     //To hold the number of philosophers at the table
     int nbPhil;
@@ -53,6 +57,7 @@ public class Monitor {
         state = new ArrayList<Status>(nbPhil);
         chopsticks = new ArrayList<Condition>(nbPhil);
         talking = lock.newCondition();
+        napping = lock.newCondition();
         for(int i = 0; i < nbPhil; i++)
         {
             state.add(Status.full);
@@ -220,10 +225,12 @@ public class Monitor {
         lock.lock();
         try
         {
-            if(aPhilosopherIsTalking)
+            philosophersWaitingToTalk++;
+            if(aPhilosopherIsTalking || philosophersNapping > 0)
             {
                 talking.await();
             }
+            philosophersWaitingToTalk--;
             aPhilosopherIsTalking = true;
         }
         catch (InterruptedException e)
@@ -249,8 +256,50 @@ public class Monitor {
         lock.lock();
 
         aPhilosopherIsTalking = false;
-        talking.signal();
+        if(philosophersWaitingToTalk > 0)
+            talking.signal();
+        else
+            napping.signalAll();
 
+        lock.unlock();
+    }
+    
+    /**
+     * Task 2:
+     * A philosopher can only nap when no philosophers are talking
+     */
+    public void requestNap()
+    {
+        lock.lock();
+        try
+        {
+            if(aPhilosopherIsTalking)
+            {
+                napping.await();
+            }
+            philosophersNapping++;
+        } catch(InterruptedException e)
+        {
+            System.err.println("Monitor.requestTalk():");
+            DiningPhilosophers.reportException(e);
+            System.exit(1);
+        } finally 
+        {
+            lock.unlock();
+        }
+    }
+    
+    /**
+     * Task 2:
+     * A philosopher finishes napping
+     */
+    public void endNap()
+    {
+        lock.lock();
+        philosophersNapping--;
+        if(philosophersNapping == 0)
+            talking.signal();
+        
         lock.unlock();
     }
     
