@@ -232,6 +232,8 @@ public class Monitor {
             }
             philosophersWaitingToTalk--;
             aPhilosopherIsTalking = true;
+            assert(aPhilosopherIsTalking);
+            assert(philosophersNapping == 0);
         }
         catch (InterruptedException e)
         {
@@ -278,6 +280,8 @@ public class Monitor {
                 napping.await();
             }
             philosophersNapping++;
+            assert(philosophersNapping > 0);
+            assert(aPhilosopherIsTalking == false);
         } catch(InterruptedException e)
         {
             System.err.println("Monitor.requestTalk():");
