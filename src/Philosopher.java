@@ -16,6 +16,9 @@ public class Philosopher extends BaseThread {
     public static final double ODDS_OF_LEAVING_TABLE = 0.05;
     //For now, a philosopher will always talk, to maximize the odds of a wait condition.
     public static final double ODDS_OF_TALKING = 1;
+    
+    //Task 5: Allow philosophers to invite a friend
+    Philosopher friend;
 
     /**
      * The act of eating. - Print the fact that a given phil (their TID) has
@@ -99,9 +102,9 @@ public class Philosopher extends BaseThread {
             DiningPhilosophers.soMonitor.putDown(getTID());
             
             //Task 5: Decide at random if the philosopher will invite a friend to join the table
-            if(Math.random() < ODDS_OF_INVITING_FRIEND)
+            if(Math.random() < ODDS_OF_INVITING_FRIEND && friend == null)
             {
-                Philosopher friend = new Philosopher();
+                friend = new Philosopher();
                 DiningPhilosophers.soMonitor.joinTable(friend.getTID());
                 friend.start();
                 System.out.println("New philosopher: id " + friend.getTID());
@@ -111,7 +114,7 @@ public class Philosopher extends BaseThread {
             if(Math.random() < ODDS_OF_LEAVING_TABLE)
             {
                 DiningPhilosophers.soMonitor.leaveTable(getTID());
-                return;
+                break;
             }
 
             think();
@@ -132,6 +135,23 @@ public class Philosopher extends BaseThread {
             DiningPhilosophers.soMonitor.endNap();
 
             yield();
+        }
+        
+        if(friend != null)
+        {
+            //Wait for your friend to finish before terminating
+            //so that main will not terminate until all philosphers
+            //are done
+            try
+            {
+                friend.join();
+            }
+            catch(InterruptedException e)
+            {
+                System.err.println("Philosopher.run():");
+                DiningPhilosophers.reportException(e);
+                System.exit(1);
+            }
         }
     } // run()
 
