@@ -4,6 +4,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  * Class Monitor
@@ -26,7 +27,7 @@ public class Monitor {
     int philosophersWaitingToTalk = 0;
     
     //To handle the food cycle of a philosopher
-    private enum Status {full, hungry, hasRightChopstick, eating};
+    private enum Status {full, hungry, hasRightChopstick, hasLeftChopstick, eating};
     
     //To hold the status of all the philosophers
     private ArrayList<Status> state;
@@ -39,6 +40,9 @@ public class Monitor {
     
     //To hold the number of philosophers at the table
     int nbPhil;
+    
+    //Task 3: Assign priority to each philosopher
+    private ArrayList<Integer> priority;
     
     //Task 5: Map philosopher TIDs to seats at the table
     private HashMap<Integer, Integer> assignedSeats;
@@ -56,14 +60,33 @@ public class Monitor {
         nbPhil = piNumberOfPhilosophers;
         state = new ArrayList<Status>(nbPhil);
         chopsticks = new ArrayList<Condition>(nbPhil);
+        //Task 3: Priority array
+        priority = new ArrayList<Integer>(nbPhil);
         talking = lock.newCondition();
         napping = lock.newCondition();
         for(int i = 0; i < nbPhil; i++)
         {
             state.add(Status.full);
             chopsticks.add(lock.newCondition());
+            
+            //Task 3: Assign the philosophers a priority equal to their index
+            priority.add(i);
         }
         
+        //Task 3: Randomize the priority of each philosopher
+        Random random = new Random(64); //Seeded for testing
+        for(int i = 0; i < 100; i++)
+        {
+            int a = (int)(random.nextDouble()*nbPhil);
+            int b = (int)(random.nextDouble()*nbPhil);
+            int temp = priority.get(a);
+            priority.set(a, priority.get(b));
+            priority.set(b, temp);
+        }
+        for(int i = 0; i < nbPhil; i++)
+        {
+            System.out.println("Philosopher " + (i+1) + " has priority " + priority.get(i));
+        }        
         //Task 5: Assign seats based on TID for each philosopher
         assignedSeats = new HashMap<Integer, Integer>();
         //Then, assign the starting philosophers to the seat corresponding
@@ -104,11 +127,19 @@ public class Monitor {
         {
             state.set(id, Status.eating);
         }
-        else if(allowedToTakeOneChopstick(id)
-                && rightChopstickFree(id)
+        else if(rightChopstickFree(id)
+                && haveHigherPriority(id, right(id))
                 && iWantToEat(id))
         {
+            System.out.println("Philosopher " + (id+1) + " has taken the right chopstick");
             state.set(id, Status.hasRightChopstick);
+        }
+        else if (leftChopstickFree(id)
+                && haveHigherPriority(id, left(id))
+                && iWantToEat(id))
+        {
+            System.out.println("Philosopher " + (id + 1) + " has taken the left chopstick");
+            state.set(id, Status.hasLeftChopstick);
         }
     }
     
@@ -122,17 +153,24 @@ public class Monitor {
     
     private boolean iWantToEat(int id)
     {
-        return state.get(id) == Status.hungry || state.get(id) == Status.hasRightChopstick;
-    }
-    
-    private boolean allowedToTakeOneChopstick(int id)
-    {
-        return id % 2 == 0;
+        return state.get(id) == Status.hungry
+            || state.get(id) == Status.hasRightChopstick
+            || state.get(id) == Status.hasLeftChopstick;
     }
     
     private boolean rightChopstickFree(int id)
     {
         return state.get(right(id)) != Status.eating;
+    }
+    
+    private boolean leftChopstickFree(int id)
+    {
+        return state.get(left(id)) != Status.eating;
+    }
+    
+    private boolean haveHigherPriority(int myId, int theirId)
+    {
+        return priority.get(myId) > priority.get(theirId);
     }
     
     /**
@@ -158,6 +196,11 @@ public class Monitor {
             else if (state.get(id) == Status.hasRightChopstick)
             {
                 System.out.println("Philosopher " + (piTID) + " has taken the right chopstick");
+                chopsticks.get(id).await();
+            }
+            else if (state.get(id) == Status.hasLeftChopstick)
+            {
+                System.out.println("Philosopher " + piTID + " has taken the left chopstick");
                 chopsticks.get(id).await();
             }
             
@@ -327,12 +370,13 @@ public class Monitor {
         
         assignedSeats.put(threadId, nbPhil);
         chopsticks.add(lock.newCondition());
+        priority.add(threadId);
         
         //There is now one more philosopher
         nbPhil++;
         
         //Let everyone know
-        System.out.println("Philosopher " + threadId + " has joined the table.");
+        System.out.println("Philosopher " + threadId + " has joined the table with priority " + threadId);
         lock.unlock();
     }
     

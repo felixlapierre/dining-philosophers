@@ -107,7 +107,6 @@ public class Philosopher extends BaseThread {
                 friend = new Philosopher();
                 DiningPhilosophers.soMonitor.joinTable(friend.getTID());
                 friend.start();
-                System.out.println("New philosopher: id " + friend.getTID());
             }
             
             //Task 5: Decide at random if the philosopher will leave the table
