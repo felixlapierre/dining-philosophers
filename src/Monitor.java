@@ -226,7 +226,7 @@ public class Monitor {
         try
         {
             philosophersWaitingToTalk++;
-            if(aPhilosopherIsTalking || philosophersNapping > 0)
+            while(aPhilosopherIsTalking || philosophersNapping > 0)
             {
                 talking.await();
             }
@@ -275,7 +275,7 @@ public class Monitor {
         lock.lock();
         try
         {
-            if(aPhilosopherIsTalking)
+            while(aPhilosopherIsTalking)
             {
                 napping.await();
             }
